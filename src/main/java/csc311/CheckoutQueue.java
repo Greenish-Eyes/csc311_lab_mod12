@@ -21,4 +21,9 @@ public class CheckoutQueue {
     public int next() throws InterruptedException {
         return queue.take();
     }
+
+    public long waitMillis (int costumerId){
+        Long t0 = arrivalTimes.remove(costumerId);
+        return t0 == null ? 0 : (System.nanoTime() - t0) / 1_000_000;
+    }
 }
