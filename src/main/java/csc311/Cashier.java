@@ -26,6 +26,10 @@ public class Cashier implements Runnable {
     }
 
 
+    public long getBusyMillis(){
+        return busyMillis;
+    }
+
     @Override
     public void run() {
         // Implementation for the cashier's task
