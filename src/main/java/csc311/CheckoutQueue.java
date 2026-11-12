@@ -17,4 +17,8 @@ public class CheckoutQueue {
         arrivalTimes.put(customerId, System.nanoTime());;
         queue.put(customerId);
     }
+
+    public int next() throws InterruptedException {
+        return queue.take();
+    }
 }
