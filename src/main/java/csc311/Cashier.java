@@ -1,5 +1,7 @@
 package csc311;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class Cashier implements Runnable {
     public static final int CLOSE = -1;
 
@@ -15,6 +17,12 @@ public class Cashier implements Runnable {
         this.minServiceMillis = minServiceMillis;
         this.maxServiceMillis = maxServiceMillis;
         this.stats = stats;
+    }
+
+    public static class Stats{
+        public final AtomicLong totalWait = new AtomicLong();
+        public final AtomicLong maxWait = new AtomicLong();
+        public final AtomicLong served = new AtomicLong();
     }
 
 
