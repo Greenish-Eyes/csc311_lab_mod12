@@ -26,4 +26,8 @@ public class CheckoutQueue {
         Long t0 = arrivalTimes.remove(costumerId);
         return t0 == null ? 0 : (System.nanoTime() - t0) / 1_000_000;
     }
+
+    public int size() {
+        return queue.size();
+    }
 }
