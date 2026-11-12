@@ -13,4 +13,16 @@ public class Customer implements Runnable {
         this.shopMillis = ThreadLocalRandom.current().nextInt(1, shopMillis + 1);
     }
 
+    @Override
+    public void run() {
+        try {
+            // Simulate shopping time
+            Thread.sleep(shopMillis);
+            // After shopping, the customer will join the checkout queue
+            queue.join(id);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
 }

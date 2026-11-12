@@ -12,4 +12,9 @@ public class CheckoutQueue {
     public CheckoutQueue(int capacity) {
         this.queue = new ArrayBlockingQueue<>(capacity);
     }
+
+    public void join(int customerId) throws InterruptedException {
+        arrivalTimes.put(customerId, System.nanoTime());;
+        queue.put(customerId);
+    }
 }
