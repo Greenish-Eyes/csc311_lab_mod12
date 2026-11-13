@@ -63,8 +63,12 @@ public class CoscoSimulation {
     }
 
 
+    static void print (String label, int cust, int cash, int queue, Result r){
+        System.out.printf("%-22s cust=%-3d cashiers=%-2d queue=%-3d avgWait=%.5.1f min maxWait=%5.1f util=%5.1f%% cost=$%6.2f%n",
+                label, cust, cash, queue, r.avgWaitMin, r.maxWaitMin, r.utilization, r.totalMin, r.cost);
+    }
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
+
     }
 }
