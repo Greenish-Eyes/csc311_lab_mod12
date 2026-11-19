@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Objects;
 
-/** Loads factory-view.fxml + styles.css (both in the resources folder). */
+/** Loads factory-view.fxml and its stylesheet from the resources folder. */
 public class FactoryApp extends Application {
     private FactoryController controller;
 
@@ -17,7 +17,7 @@ public class FactoryApp extends Application {
         FXMLLoader loader = new FXMLLoader(FactoryApp.class.getResource("factory-view.fxml"));
         Scene scene = new Scene(loader.load());
         scene.getStylesheets().add(
-                Objects.requireNonNull(FactoryApp.class.getResource("styles.css")).toExternalForm());
+                Objects.requireNonNull(FactoryApp.class.getResource("Styles.css")).toExternalForm());
         controller = loader.getController();
 
         stage.setTitle("Factory Conveyor Belt Simulation");
@@ -30,7 +30,4 @@ public class FactoryApp extends Application {
         if (controller != null) controller.shutdown();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 }

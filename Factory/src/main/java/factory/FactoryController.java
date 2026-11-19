@@ -8,6 +8,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
@@ -39,6 +40,11 @@ public class FactoryController {
 
     @FXML
     private void initialize() {
+        assemblersSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 6, 3));
+        packagersSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 6, 2));
+        beltSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 8));
+        partsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 500, 40));
+
         timer = new AnimationTimer() {
             @Override
             public void handle(long now) { draw(now); }

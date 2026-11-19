@@ -58,14 +58,46 @@
             <!-- Default configuration for running with: mvn clean javafx:run -->
             <id>default-cli</id>
             <configuration>
-              <mainClass>csc311.csc311_gui_basics/csc311.csc311_gui_basics.App
-              </mainClass>
+              <mainClass>factory.FactoryLauncher</mainClass>
               <launcher>app</launcher>
               <jlinkZipName>app</jlinkZipName>
               <jlinkImageName>app</jlinkImageName>
               <noManPages>true</noManPages>
               <stripDebug>true</stripDebug>
               <noHeaderFiles>true</noHeaderFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>add-factory-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>Factory/src/main/java</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-factory-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>Factory/src/main/resources</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>

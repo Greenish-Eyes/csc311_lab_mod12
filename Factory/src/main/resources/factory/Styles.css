@@ -1,0 +1,94 @@
+/* Factory Conveyor Belt simulation */
+
+.root-pane {
+    -fx-background-color: #1e1e24;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+}
+
+/* ---------- top control bar ---------- */
+.control-bar {
+    -fx-background-color: #2a2a33;
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: #3d3d4a;
+    -fx-border-width: 0 0 1 0;
+}
+
+.control-label {
+    -fx-text-fill: #d8d8e0;
+}
+
+.spinner .text-field {
+    -fx-background-color: #3a3a46;
+    -fx-text-fill: white;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: #4a4a58;
+}
+
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+    -fx-background-color: #5d5d70;
+}
+
+.slider .axis {
+    -fx-tick-label-fill: #b0b0bc;
+}
+
+.slider .track {
+    -fx-background-color: #4a4a58;
+}
+
+.slider .thumb {
+    -fx-background-color: #4dd0e1;
+}
+
+/* ---------- buttons ---------- */
+.start-button, .stop-button {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.start-button { -fx-background-color: #43a047; }
+.start-button:hover { -fx-background-color: #57b85b; }
+.start-button:pressed { -fx-background-color: #2e7d32; }
+
+.stop-button { -fx-background-color: #e53935; }
+.stop-button:hover { -fx-background-color: #ef5350; }
+.stop-button:pressed { -fx-background-color: #b71c1c; }
+
+/* ---------- canvas area ---------- */
+.canvas-holder {
+    -fx-background-color: #1e1e24;
+    -fx-padding: 6;
+}
+
+/* ---------- bottom stats bar ---------- */
+.stats-bar {
+    -fx-background-color: #2a2a33;
+    -fx-padding: 8 14 8 14;
+    -fx-border-color: #3d3d4a;
+    -fx-border-width: 1 0 0 0;
+}
+
+.stats-label {
+    -fx-text-fill: #e6e6ee;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+}
+
+.status-label {
+    -fx-font-weight: bold;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-background-color: #757575;
+}
+
+.status-running  { -fx-background-color: #43a047; }
+.status-finished { -fx-background-color: #1e88e5; }
+.status-stopped  { -fx-background-color: #e53935; }
