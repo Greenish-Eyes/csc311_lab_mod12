@@ -88,51 +88,69 @@ public class FactoryController {
             return;
         }
 
-        double beltX = 230, beltW = 440, beltH = 70, beltY = h / 2 - beltH / 2;
+        double beltX = 210, beltW = 480, beltH = 54;
+        double inputY = h * 0.35 - beltH / 2;
+        double outputY = h * 0.70 - beltH / 2;
+        int cap = factory.getInputBelt().capacity();
 
-        // belt body + scrolling stripes
-        g.setFill(Color.web("#3a3a42"));
-        g.fillRect(beltX, beltY, beltW, beltH);
-        double offset = factory.isRunning() ? (nowNanos / 40_000_000.0) % 24 : 0;
-        g.setStroke(Color.web("#55555f"));
-        g.setLineWidth(2);
-        for (double x = beltX + offset; x < beltX + beltW; x += 24) {
-            g.strokeLine(x, beltY, x, beltY + beltH);
-        }
-        g.setStroke(Color.web("#888888"));
-        g.strokeRect(beltX, beltY, beltW, beltH);
+        drawWorkers(g, h, 25, true, beltX, inputY + beltH / 2,
+                outputY + beltH / 2);
+        drawWorkers(g, h, 745, false, beltX + beltW, outputY + beltH / 2,
+                outputY + beltH / 2);
 
-        // workers: assemblers left, packagers right
-        drawWorkers(g, h, 30, true, beltX, h / 2);
-        drawWorkers(g, h, 740, false, beltX + beltW, h / 2);
-
-        // parts on the belt: oldest part sits at the packager (right) end
-        int cap = factory.getBelt().capacity();
-        double slotW = beltW / cap;
-        List<Part> parts = factory.getBelt().snapshot();
-        for (int i = 0; i < parts.size() && i < cap; i++) {
-            Part p = parts.get(i);
-            if (p.id() < 0) continue;
-            double size = Math.min(slotW - 6, beltH - 16);
-            double x = beltX + beltW - (i + 1) * slotW + (slotW - size) / 2;
-            g.setFill(PALETTE[p.assembler() % PALETTE.length]);
-            g.fillRoundRect(x, beltY + (beltH - size) / 2, size, size, 8, 8);
-            g.setFill(Color.BLACK);
-            g.fillText(String.valueOf(p.id()), x + size / 2, beltY + beltH / 2);
-        }
-
+        drawBelt(g, nowNanos, beltX, inputY, beltW, beltH,
+                factory.getInputBelt().snapshot(), cap, true);
+        drawBelt(g, nowNanos, beltX, outputY, beltW, beltH,
+                factory.getPackagingBelt().snapshot(), cap, false);
         g.setFill(Color.WHITE);
-        g.fillText("Conveyor belt (" + factory.getBelt().size() + " / " + cap + ")",
-                beltX + beltW / 2, beltY - 20);
+        g.fillText("ASSEMBLERS  \u2190  RAW PARTS", beltX + beltW / 2, inputY - 18);
+        g.fillText("ASSEMBLERS  \u2192  PACKAGERS", beltX + beltW / 2, outputY - 18);
 
         updateLabels(cap);
     }
 
+    private void drawBelt(GraphicsContext g, long nowNanos, double x, double y,
+                          double width, double height, List<Part> parts, int capacity,
+                          boolean incoming) {
+        g.setFill(Color.web("#3a3a42"));
+        g.fillRect(x, y, width, height);
+        double stripeOffset = (nowNanos / 40_000_000.0) % 24;
+        double offset = factory.isRunning()
+                ? (incoming ? 24 - stripeOffset : stripeOffset)
+                : 0;
+        g.setStroke(Color.web("#55555f"));
+        g.setLineWidth(2);
+        for (double stripe = x + offset; stripe < x + width; stripe += 24) {
+            g.strokeLine(stripe, y, stripe, y + height);
+        }
+        g.setStroke(Color.web("#888888"));
+        g.strokeRect(x, y, width, height);
+
+        List<Part> visibleParts = parts;
+        for (int i = 0; i < visibleParts.size() && i < capacity; i++) {
+            Part part = visibleParts.get(i);
+            double size = Math.min(34, height - 10);
+            double progress = Math.min(1, (nowNanos - part.beltEntryNanos())
+                    / (factory.beltTravelMillis() * 1_000_000.0));
+            double partCenterX = incoming
+                    ? x + width * (1 - progress)
+                    : x + width * progress;
+            double partX = partCenterX - size / 2;
+            g.setFill(incoming ? Color.web("#b0bec5") : PALETTE[part.assembler() % PALETTE.length]);
+            g.fillRoundRect(partX, y + (height - size) / 2, size, size, 8, 8);
+            g.setFill(Color.BLACK);
+            g.setFont(Font.font(Math.min(13, Math.max(9, size * 0.42))));
+            g.fillText(String.valueOf(part.id()), partX + size / 2, y + height / 2);
+        }
+        g.setFont(Font.font(13));
+    }
+
     private void updateLabels(int cap) {
         statsLabel.setText(String.format(
-                "Built: %d / %d   Packaged: %d   On belt: %d / %d   Avg time on belt: %.2f s   Elapsed: %.1f s",
+                "Built: %d / %d   Packaged: %d   Raw belt: %d / %d   Finished belt: %d / %d   Avg belt time: %.2f s   Elapsed: %.1f s",
                 factory.builtCount(), factory.totalParts(), factory.packagedCount(),
-                factory.getBelt().size(), cap, factory.avgBeltSeconds(), factory.elapsedSeconds()));
+                factory.getInputBelt().size(), cap, factory.getPackagingBelt().size(), cap,
+                factory.avgBeltSeconds(), factory.elapsedSeconds()));
 
         String status = factory.isRunning() ? "RUNNING" : (factory.isStopped() ? "STOPPED" : "FINISHED");
         if (!status.equals(lastStatus)) {           // only touch the style classes when it changes
@@ -143,7 +161,8 @@ public class FactoryController {
     }
 
     private void drawWorkers(GraphicsContext g, double h, double x, boolean assemblers,
-                             double beltEdgeX, double beltCenterY) {
+                             double beltEdgeX, double firstBeltCenterY,
+                             double secondBeltCenterY) {
         int n = assemblers ? factory.assemblerCount() : factory.packagerCount();
         double spacing = (h - 60) / n;
         double boxH = Math.min(50, spacing - 10);
@@ -155,14 +174,21 @@ public class FactoryController {
 
             g.setStroke(c);
             g.setLineWidth(2);
-            double fromX = assemblers ? x + boxW : x;
-            g.strokeLine(fromX, y + boxH / 2, beltEdgeX, beltCenterY);
+            double stationCenterY = y + boxH / 2;
+            if (assemblers) {
+                g.strokeLine(x + boxW, stationCenterY, beltEdgeX, firstBeltCenterY);
+                g.strokeLine(x + boxW, stationCenterY, beltEdgeX, secondBeltCenterY);
+            } else {
+                g.strokeLine(beltEdgeX, secondBeltCenterY, x, stationCenterY);
+            }
 
             g.setFill(c);
             g.fillRoundRect(x, y, boxW, boxH, 10, 10);
             g.setFill(Color.WHITE);
             g.fillText((assemblers ? "Assembler " : "Packager ") + (i + 1), x + boxW / 2, y + boxH / 2 - 9);
-            g.fillText(labelFor(s, assemblers), x + boxW / 2, y + boxH / 2 + 9);
+            Part part = assemblers ? null : factory.packagerPart(i);
+            String activity = part == null ? labelFor(s, assemblers) : "Packing #" + part.id();
+            g.fillText(activity, x + boxW / 2, y + boxH / 2 + 9);
         }
     }
 

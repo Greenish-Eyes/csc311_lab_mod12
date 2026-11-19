@@ -12,9 +12,11 @@ public final class Factory {
     private final int packagerCount;
     private final int totalParts;
     private final double speed;
-    private final ConveyorBelt belt;
+    private final ConveyorBelt inputBelt;
+    private final ConveyorBelt packagingBelt;
     private final State[] assemblerStates;
     private final State[] packagerStates;
+    private final Part[] packagerParts;
     private final Thread[] workers;
     private final AtomicInteger built = new AtomicInteger();
     private final AtomicInteger packaged = new AtomicInteger();
@@ -34,10 +36,12 @@ public final class Factory {
         this.packagerCount = packagerCount;
         this.totalParts = totalParts;
         this.speed = speed;
-        belt = new ConveyorBelt(beltCapacity);
+        inputBelt = new ConveyorBelt(beltCapacity);
+        packagingBelt = new ConveyorBelt(beltCapacity);
         assemblerStates = new State[assemblerCount];
         packagerStates = new State[packagerCount];
-        workers = new Thread[assemblerCount + packagerCount];
+        packagerParts = new Part[packagerCount];
+        workers = new Thread[assemblerCount + packagerCount + 1];
         java.util.Arrays.fill(assemblerStates, State.IDLE);
         java.util.Arrays.fill(packagerStates, State.IDLE);
     }
@@ -49,6 +53,7 @@ public final class Factory {
         running = true;
         startNanos = System.nanoTime();
         int workerIndex = 0;
+        workers[workerIndex++] = new Thread(this::supplyParts, "factory-parts-supplier");
         for (int i = 0; i < packagerCount; i++) {
             int packager = i;
             workers[workerIndex++] = new Thread(() -> packageParts(packager),
@@ -73,18 +78,36 @@ public final class Factory {
                 worker.interrupt();
             }
         }
-        belt.completeProduction();
+        inputBelt.completeProduction();
+        packagingBelt.completeProduction();
+    }
+
+    private void supplyParts() {
+        try {
+            for (int id = 1; id <= totalParts; id++) {
+                Thread.sleep(workDelayMillis());
+                inputBelt.put(new Part(id, -1));
+            }
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+        } finally {
+            inputBelt.completeProduction();
+        }
     }
 
     private void assembleParts(int assembler) {
         try {
-            for (int id = assembler + 1; id <= totalParts; id += assemblerCount) {
+            while (true) {
+                setAssemblerState(assembler, State.IDLE);
+                Part rawPart = inputBelt.take(beltTravelNanos());
+                if (rawPart == null) {
+                    break;
+                }
                 setAssemblerState(assembler, State.WORKING);
                 Thread.sleep(workDelayMillis());
                 setAssemblerState(assembler, State.BLOCKED);
-                belt.put(new Part(id, assembler));
+                packagingBelt.put(new Part(rawPart.id(), assembler));
                 built.incrementAndGet();
-                setAssemblerState(assembler, State.IDLE);
             }
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
@@ -98,19 +121,22 @@ public final class Factory {
         try {
             while (true) {
                 setPackagerState(packager, State.IDLE);
-                Part part = belt.take();
+                Part part = packagingBelt.take(beltTravelNanos());
                 if (part == null) {
                     break;
                 }
                 totalBeltNanos.addAndGet(System.nanoTime() - part.beltEntryNanos());
                 beltSamples.incrementAndGet();
+                setPackagerPart(packager, part);
                 setPackagerState(packager, State.WORKING);
                 Thread.sleep(workDelayMillis());
                 packaged.incrementAndGet();
+                setPackagerPart(packager, null);
             }
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
         } finally {
+            setPackagerPart(packager, null);
             setPackagerState(packager, State.DONE);
             packagerFinished();
         }
@@ -118,7 +144,7 @@ public final class Factory {
 
     private synchronized void assemblerFinished() {
         if (++completedAssemblers == assemblerCount) {
-            belt.completeProduction();
+            packagingBelt.completeProduction();
         }
     }
 
@@ -133,12 +159,24 @@ public final class Factory {
         return Math.max(40, Math.round(500 / speed));
     }
 
+    private long beltTravelNanos() {
+        return Math.max(600, Math.round(1_200 / speed)) * 1_000_000;
+    }
+
+    public long beltTravelMillis() {
+        return beltTravelNanos() / 1_000_000;
+    }
+
     private synchronized void setAssemblerState(int index, State state) {
         assemblerStates[index] = state;
     }
 
     private synchronized void setPackagerState(int index, State state) {
         packagerStates[index] = state;
+    }
+
+    private synchronized void setPackagerPart(int index, Part part) {
+        packagerParts[index] = part;
     }
 
     public int assemblerCount() {
@@ -153,8 +191,12 @@ public final class Factory {
         return totalParts;
     }
 
-    public ConveyorBelt getBelt() {
-        return belt;
+    public ConveyorBelt getInputBelt() {
+        return inputBelt;
+    }
+
+    public ConveyorBelt getPackagingBelt() {
+        return packagingBelt;
     }
 
     public int builtCount() {
@@ -195,6 +237,12 @@ public final class Factory {
     public State packagerState(int index) {
         synchronized (this) {
             return packagerStates[index];
+        }
+    }
+
+    public Part packagerPart(int index) {
+        synchronized (this) {
+            return packagerParts[index];
         }
     }
 }

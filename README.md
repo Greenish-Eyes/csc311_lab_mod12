@@ -8,7 +8,7 @@
 </ul>
 
 <h2>Factory simulation</h2>
-<p>Run the JavaFX factory conveyor simulation from the repository root with <code>mvn javafx:run</code>. In IntelliJ, run <code>factory.FactoryLauncher</code> (not <code>factory.FactoryApp</code>) so JavaFX starts correctly from the classpath.</p>
+<p>The JavaFX factory simulation shows separate incoming-parts and finished-product conveyors, with parts moving toward assemblers and packagers respectively. Run it from the repository root with <code>mvn javafx:run</code>. In IntelliJ, run <code>factory.FactoryLauncher</code> (not <code>factory.FactoryApp</code>) so JavaFX starts correctly from the classpath.</p>
 
 <h2>Experiment results</h2>
 

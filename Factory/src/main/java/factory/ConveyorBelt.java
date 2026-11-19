@@ -20,13 +20,25 @@ final class ConveyorBelt {
         notifyAll();
     }
 
-    synchronized Part take() throws InterruptedException {
-        while (parts.isEmpty() && !productionComplete) {
-            wait();
+    synchronized Part take(long travelTimeNanos) throws InterruptedException {
+        while (true) {
+            while (parts.isEmpty() && !productionComplete) {
+                wait();
+            }
+            if (parts.isEmpty()) {
+                return null;
+            }
+
+            long remaining = travelTimeNanos - (System.nanoTime() - parts.peekFirst().beltEntryNanos());
+            if (remaining <= 0) {
+                Part part = parts.pollFirst();
+                notifyAll();
+                return part;
+            }
+            long millis = remaining / 1_000_000;
+            int nanos = (int) (remaining % 1_000_000);
+            wait(millis, nanos);
         }
-        Part part = parts.pollFirst();
-        notifyAll();
-        return part;
     }
 
     synchronized void completeProduction() {
