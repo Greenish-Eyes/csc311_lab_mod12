@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="factory.FactoryController"
+            styleClass="root-pane">
+
+    <top>
+        <HBox styleClass="control-bar" alignment="CENTER_LEFT" spacing="10">
+            <Label text="Assemblers" styleClass="control-label"/>
+            <Spinner fx:id="assemblersSpinner" prefWidth="75">
+                <valueFactory>
+                    <IntegerSpinnerValueFactory min="1" max="6" initialValue="3"/>
+                </valueFactory>
+            </Spinner>
+
+            <Label text="Packagers" styleClass="control-label"/>
+            <Spinner fx:id="packagersSpinner" prefWidth="75">
+                <valueFactory>
+                    <IntegerSpinnerValueFactory min="1" max="6" initialValue="2"/>
+                </valueFactory>
+            </Spinner>
+
+            <Label text="Belt size" styleClass="control-label"/>
+            <Spinner fx:id="beltSpinner" prefWidth="75">
+                <valueFactory>
+                    <IntegerSpinnerValueFactory min="1" max="20" initialValue="8"/>
+                </valueFactory>
+            </Spinner>
+
+            <Label text="Parts" styleClass="control-label"/>
+            <Spinner fx:id="partsSpinner" prefWidth="80">
+                <valueFactory>
+                    <IntegerSpinnerValueFactory min="5" max="500" initialValue="40"/>
+                </valueFactory>
+            </Spinner>
+
+            <Label text="Speed" styleClass="control-label"/>
+            <Slider fx:id="speedSlider" min="0.5" max="4" value="1"
+                    majorTickUnit="0.5" showTickLabels="true" prefWidth="160"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button fx:id="startButton" text="Start / Restart" styleClass="start-button"
+                    onAction="#onStart"/>
+            <Button fx:id="stopButton" text="Stop" styleClass="stop-button"
+                    onAction="#onStop"/>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane styleClass="canvas-holder">
+            <Canvas fx:id="canvas" width="900" height="420"/>
+        </StackPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="stats-bar" alignment="CENTER_LEFT" spacing="16">
+            <Label fx:id="statsLabel" text="Choose settings and press Start" styleClass="stats-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="statusLabel" text="READY" styleClass="status-label"/>
+        </HBox>
+    </bottom>
+</BorderPane>
